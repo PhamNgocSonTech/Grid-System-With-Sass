@@ -42,6 +42,7 @@ $grid-gutter-width: 30px;
   flex-wrap: wrap;
   padding-left: -$grid-gutter-width * 0.5;
   padding-right: -$grid-gutter-width * 0.5;
+  &[class*="row-cols-"] > *,
   [class*="col-"] {
     flex: 0 0 auto;
     @extend %gutter-padding;
@@ -63,19 +64,42 @@ $grid-gutter-width: 30px;
   }
 }
 
+@mixin make-row-columns($infit) {
+  @for $i from 1 through $grid-columns * 0.5 {
+    .row-cols#{$infit}-#{$i} > * {
+      width: math.div(100%, $i);
+    }
+  }
+}
+
+@mixin make-columns($infit) {
+  @for $i from 1 through $grid-columns {
+    .col#{$infit}-#{$i} {
+      width: math.div(100%, $grid-columns) * $i;
+    }
+  }
+}
+
+@mixin make-offsets($infit) {
+  @for $i from 0 to $grid-columns {
+    .offset#{$infit}-#{$i} {
+      margin-left: if($i > 0, math.div(100%, $grid-columns) * $i, 0);
+    }
+  }
+}
+
 @each $breakpoint, $dimension in $grid-breakpoints {
   $max-width: map-get($container-max-widths, $breakpoint);
-  $infit: if($breakpoint == xs, "", "-#{$breakpoint}");
+  $isXs: $breakpoint == xs;
+  $infit: if($isXs, "", "-#{$breakpoint}");
 
-  @include make-media-query($dimension, $breakpoint == xs) {
+  @include make-media-query($dimension, $isXs) {
     .container {
       max-width: $max-width;
     }
 
-    @for $i from 1 through $grid-columns {
-      .col#{$infit}-#{$i} {
-        width: math.div(100%, $grid-columns) * $i;
-      }
-    }
+    @include make-row-columns($infit);
+    @include make-columns($infit);
+    @include make-offsets($infit);
   }
 }
